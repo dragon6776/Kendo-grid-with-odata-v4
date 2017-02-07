@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@section scripts{
+
+    <script>
+        $(document).ready(function () {
+            var crudServiceBaseUrl = "/odata/Products";
+
+            var paraMapMethods = {
+                paraMapV4: function (options, operation) {
+                    // kendo odata v4 (params using v4)
+                    // odata controller v4
+
+                    // ******************************************
+                    // This is needed for Kendo grid's filters when using OData v4.
+
+                    // Call the default OData V4 parameterMap. 
+                    var result = kendo.data.transports["odata-v4"].parameterMap(options, operation);
+
+                    if (result.$filter) {
+
+                        // Remove the single quotation marks around the GUID (OData v4).
+                        // http://www.telerik.com/forums/guids-in-filters
+                        result.$filter = result.$filter.replace(/('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')/ig, function (x) {
+                            return x.substring(1, x.length - 1);
+                        });
+                    }
+                    return result;
+                },
+                paraMapV3ToV4: function (data, type) {
+                    // kendo odata v3 (params using v3, convert this params type to v4 type to access v4 controller.
+                    // odata controller v4
+                    // additional: config schema model:
+
+                    // This is needed for Kendo-grid's filters when using OData v4.
+ 
+                    // Call the default OData parameterMap.
+                    // NOTE: The last boolean parameter indicates that OData v4 is used.
+                    var result = kendo.data.transports.odata.parameterMap(data, type, true);
+                    delete result.$format;
+                    delete result.$inlinecount;
+                    result.$count = true;
+
+                    if (result.$filter) {
+                        // Remove the single quotation marks around the GUID (OData v4).
+                        // http://www.telerik.com/forums/guids-in-filters
+                        result.$filter = result.$filter.replace(/('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')/ig, function (x) {               
+                            return x.substring(1, x.length - 1);
+                        });
+
+                        // Replace "substring" with "contains" (OData v4)
+                        // http://stackoverflow.com/questions/25137239/odata-v4-working-with-kendoui-grid-contains-filter
+                        result.$filter = result.$filter.replace(/substringof\((.*?),(.*?)\)/g, "contains($2,$1)");
+                    }
+                    return result;
+                },
+                paraMapV3: function (options, operation) {
+                    // kendo odata v3 - params using v3
+                    // odata controller v3
+                }
+            };
+
+            var ds = {
+                type: "odata-v4",
+                transport: {
+                    read: {
+                        url: crudServiceBaseUrl,
+                        dataType: "json"
+                    },
+                    update: {
+                        url: function (model) {
+                            debugger;
+                            return crudServiceBaseUrl + "(" + model.ProductID + ")";
+                        },
+                        type: "PUT",
+                        dataType: "json"
+                    },
+                    destroy: {
+                        url: crudServiceBaseUrl + "/Products/Destroy",
+                        dataType: "jsonp"
+                    },
+                    create: {
+                        url: crudServiceBaseUrl + "/Products/Create",
+                        dataType: "jsonp"
+                    },
+                    parameterMap: function (options, operation) {
+                        debugger;
+                        if (operation !== "read") { // && options.models
+                            return options;
+                            //return { models: kendo.stringify(options.models) };
+                        }
+
+                        // c1: v3 only
+                        // ...
+                        // c2: convert v3 param to v4
+                        return paraMapMethods.paraMapV3ToV4(options, operation);
+                        // c3: v4 only
+                        //return paraMapMethods.paraMapV4(options, operation);
+                    }
+                },
+                schema: {
+                    data: function (data) {
+                        return data["value"];
+                    },
+                    group: function (data) {
+                        return data["value"];
+                    },
+                    total: function (data) {
+                        return data["@("@odata.count")"];
+                    },
+                    model: {
+                        id: "ProductID",
+                        fields: {
+                            ProductID: { editable: false, nullable: true },
+                            ProductName: { validation: { required: true } },
+                            UnitPrice: { type: "number", validation: { required: true, min: 1 } },
+                            Discontinued: { type: "boolean" },
+                            UnitsInStock: { type: "number", validation: { min: 0, required: true } }
+                        }
+                    }
+                },
+                pageSize: 10,
+                serverPaging: true,
+                serverFiltering: true,
+                serverSorting: true
+            };
+
+
+            $("#grid").kendoGrid({
+                dataSource: ds,
+                filterable: true,
+                sortable: true,
+                pageable: true,
+                //columns: [{
+                //    field: "ProductID",
+                //    filterable: false
+                //},{
+                //    field: "ProductName",
+                //}, {
+                //    field: "QuantityPerUnit",
+                //}, {
+                //    field: "UnitPrice",
+                //}],
+                toolbar: ["create"],
+                columns: [
+                    "ProductName",
+                    { field: "UnitPrice", title: "Unit Price", format: "{0:c}", width: "120px" },
+                    { field: "UnitsInStock", title: "Units In Stock", width: "120px" },
+                    { field: "Discontinued", width: "120px" },
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }],
+                editable: "inline"
+            });
+        });
+    </script>
+}
+
+<div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+    <p><a href="http://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="example">
+            <div id="grid"></div>
+        </div>
+    </div>
+</div>
