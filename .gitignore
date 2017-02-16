@@ -2,4 +2,8 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/OdataBearerAuth/bin/Antlr3.Runtime.dll
+/packages
+/OdataBearerAuth/bin
+/OdataBearerAuth/obj
+/OdataKendo/bin
+/OdataKendo/obj

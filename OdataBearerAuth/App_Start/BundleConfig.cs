@@ -1,7 +1,7 @@
 ﻿using System.Web;
 using System.Web.Optimization;
 
-namespace OdataKendo
+namespace OdataBearerAuth
 {
     public class BundleConfig
     {
@@ -10,9 +10,6 @@ namespace OdataKendo
         {
             bundles.Add(new ScriptBundle("~/bundles/jquery").Include(
                         "~/Scripts/jquery-{version}.js"));
-
-            bundles.Add(new ScriptBundle("~/bundles/jqueryval").Include(
-                        "~/Scripts/jquery.validate*"));
 
             // Use the development version of Modernizr to develop with and learn from. Then, when you're
             // ready for production, use the build tool at http://modernizr.com to pick only the tests you need.
@@ -23,25 +20,9 @@ namespace OdataKendo
                       "~/Scripts/bootstrap.js",
                       "~/Scripts/respond.js"));
 
-            bundles.Add(new ScriptBundle("~/bundles/kendo").Include(
-                      "~/Content/kendoui/js/kendo.all.min.js"));
-
-            //bundles.Add(new ScriptBundle("~/bundles/kendo").Include(
-            //          "~/Content/kendoui/2014.1.318/js/kendo.web.min.js"));
-
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
-
-            bundles.Add(new StyleBundle("~/Content/kendostyles").Include(
-                      "~/Content/kendoui/styles/kendo.common.min.css",
-                      "~/Content/kendoui/styles/kendo.default.min.css",
-                      "~/Content/kendoui/styles/kendo.default.mobile.min.css"));
-
-            //bundles.Add(new StyleBundle("~/Content/kendostyles").Include(
-            //          "~/Content/kendoui/2014.1.318/styles/kendo.common.min.css",
-            //          "~/Content/kendoui/2014.1.318/styles/kendo.default.min.css",
-            //          "~/Content/kendoui/2014.1.318/styles/kendo.default.mobile.min.css"));
         }
     }
 }

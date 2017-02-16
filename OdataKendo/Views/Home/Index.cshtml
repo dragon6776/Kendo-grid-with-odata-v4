@@ -1,5 +1,7 @@
 ﻿@{
     ViewBag.Title = "Home Page";
+    //OdataKendo.Models.DemoContext db = new OdataKendo.Models.DemoContext();
+    //var list = db.Products.ToList();
 }
 
 @section scripts{
@@ -8,19 +10,21 @@
         $(document).ready(function () {
             var crudServiceBaseUrl = "/odata/Products";
 
-            var paraMapMethods = {
+            var responseMethods = {
                 paraMapV4: function (options, operation) {
-                    // kendo odata v4 (params using v4)
-                    // odata controller v4
+                    // ** KHONG CAN STRINGYFY ODATA V4
+                    //if (operation !== "read") { // && options.models
+                    //    //return options;
+                    //    // return { models: kendo.stringify(options) };
+                    //    return kendo.stringify(options);
+                    //}
 
-                    // ******************************************
-                    // This is needed for Kendo grid's filters when using OData v4.
+                    // This is needed for Kendo grid's filters when using OData v4. // kendo odata v4 (params using v4) - odata controller v4
 
-                    // Call the default OData V4 parameterMap. 
+                    // Call the default OData V4 parameterMap.
                     var result = kendo.data.transports["odata-v4"].parameterMap(options, operation);
 
                     if (result.$filter) {
-
                         // Remove the single quotation marks around the GUID (OData v4).
                         // http://www.telerik.com/forums/guids-in-filters
                         result.$filter = result.$filter.replace(/('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')/ig, function (x) {
@@ -30,6 +34,11 @@
                     return result;
                 },
                 paraMapV3ToV4: function (data, type) {
+                    if (operation !== "read") { // && options.models
+                        return options;
+                        //return { models: kendo.stringify(options.models) };
+                    }
+
                     // kendo odata v3 (params using v3, convert this params type to v4 type to access v4 controller.
                     // odata controller v4
                     // additional: config schema model:
@@ -85,24 +94,35 @@
                         url: crudServiceBaseUrl + "/Products/Create",
                         dataType: "jsonp"
                     },
-                    parameterMap: function (options, operation) {
-                        debugger;
-                        if (operation !== "read") { // && options.models
-                            return options;
-                            //return { models: kendo.stringify(options.models) };
-                        }
-
-                        // c1: v3 only
-                        // ...
-                        // c2: convert v3 param to v4
-                        return paraMapMethods.paraMapV3ToV4(options, operation);
-                        // c3: v4 only
-                        //return paraMapMethods.paraMapV4(options, operation);
-                    }
+                    parameterMap: responseMethods.paraMapV4
                 },
                 schema: {
                     data: function (data) {
+
+
                         return data["value"];
+
+                        // #region Odata v4:
+                        // * note: remove '@@odata.etag' to prevent error when click cancel button - remove etag to prevent error when click cancel button
+                        try {
+                            var list = data["value"];
+                            list.forEach(function (item) {
+                                delete item['@("@odata.etag")']
+                            });
+                            return list;
+                        } catch (e) {
+                            // exception thrown incase operation != 'read'
+                        }
+
+                        try {
+                            delete data['@("@odata.context")'];
+                            delete data['@("@odata.etag")'];
+                            return data;
+                        } catch (e) {
+                            // unknown exceiption
+                        }
+
+                        // #endregion
                     },
                     group: function (data) {
                         return data["value"];
@@ -166,6 +186,12 @@
     <div class="col-md-12">
         <div id="example">
             <div id="grid"></div>
+            @*<ul>
+                @foreach(var item in list)
+                {
+                    <li>@item.ProductName</li>
+                }
+            </ul>*@
         </div>
     </div>
 </div>
